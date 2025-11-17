@@ -1,0 +1,94 @@
+{% extends 'charity/base.html' %}
+
+{% block title %}Active Campaigns - Charity Hub{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 3rem 2rem;">
+    <h1><i class="fas fa-bullhorn"></i> Active Campaigns</h1>
+    <p>Support causes that matter and make a real difference</p>
+</section>
+
+<div class="container">
+    <div class="section-title">
+        <h2>All Campaigns</h2>
+        <p>Browse through our ongoing and upcoming initiatives</p>
+    </div>
+
+    <div id="campaigns-loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading all campaigns...</p>
+    </div>
+
+    <div id="campaigns-grid" class="card-grid" style="display: none;"></div>
+    
+    <div id="no-campaigns" style="display: none; text-align: center; padding: 3rem;">
+        <i class="fas fa-bullhorn" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <h3>No Campaigns Yet</h3>
+        <p>Check back soon for new campaigns!</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $.get('/api/campaigns/', function(data) {
+        $('#campaigns-loading').hide();
+        
+        const campaigns = data.results || [];
+        
+        if (campaigns.length === 0) {
+            $('#no-campaigns').show();
+            return;
+        }
+
+        $('#campaigns-grid').show();
+
+        campaigns.forEach(campaign => {
+            const progress = ((campaign.raised_amount / campaign.goal_amount) * 100).toFixed(1);
+            const statusClass = campaign.status === 'active' ? 'success' : 
+                              campaign.status === 'completed' ? 'info' : 
+                              campaign.status === 'planning' ? 'warning' : 'danger';
+            
+            const card = `
+                <div class="card campaign-card">
+                    <div class="card-header">
+                        <h3>${campaign.title}</h3>
+                        <span class="badge badge-${statusClass}">${campaign.status.toUpperCase()}</span>
+                    </div>
+                    <div class="card-body">
+                        <p><i class="fas fa-building"></i> <strong>${campaign.organization_name}</strong></p>
+                        <p style="min-height: 60px;">${campaign.description}</p>
+                        ${campaign.location ? `<p><i class="fas fa-map-marker-alt"></i> ${campaign.location}</p>` : ''}
+                        
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${Math.min(progress, 100)}%"></div>
+                        </div>
+                        
+                        <div class="campaign-stats">
+                            <div class="stat">
+                                <div class="stat-value">$${parseFloat(campaign.raised_amount).toLocaleString()}</div>
+                                <div class="stat-label">Raised</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">$${parseFloat(campaign.goal_amount).toLocaleString()}</div>
+                                <div class="stat-label">Goal</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${progress}%</div>
+                                <div class="stat-label">Progress</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <p><i class="far fa-calendar"></i> ${campaign.start_date} to ${campaign.end_date}</p>
+                        <p><i class="fas fa-users"></i> ${campaign.beneficiary_count} beneficiaries supported</p>
+                    </div>
+                </div>
+            `;
+            $('#campaigns-grid').append(card);
+        });
+    });
+});
+</script>
+{% endblock %}

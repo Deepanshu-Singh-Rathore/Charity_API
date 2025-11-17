@@ -1,0 +1,74 @@
+{% extends 'charity/base.html' %}
+
+{% block title %}Beneficiaries - Charity Hub{% endblock %}
+
+{% block content %}
+<section class="hero" style="padding: 3rem 2rem;">
+    <h1><i class="fas fa-users"></i> Our Beneficiaries</h1>
+    <p>Meet the people whose lives we're helping to transform</p>
+</section>
+
+<div class="container">
+    <div class="section-title">
+        <h2>People We're Helping</h2>
+        <p>Every person has a story, and we're here to help write better chapters</p>
+    </div>
+
+    <div id="beneficiaries-loading" class="loading">
+        <div class="spinner"></div>
+        <p>Loading beneficiaries...</p>
+    </div>
+
+    <div id="beneficiaries-grid" class="card-grid" style="display: none;"></div>
+    
+    <div id="no-beneficiaries" style="display: none; text-align: center; padding: 3rem;">
+        <i class="fas fa-users" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <h3>No Beneficiaries Registered</h3>
+        <p>Check back soon as campaigns help more people!</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $.get('/api/beneficiaries/', function(data) {
+        $('#beneficiaries-loading').hide();
+        
+        const beneficiaries = data.results || [];
+        
+        if (beneficiaries.length === 0) {
+            $('#no-beneficiaries').show();
+            return;
+        }
+
+        $('#beneficiaries-grid').show();
+
+        beneficiaries.forEach(beneficiary => {
+            const card = `
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-user"></i> ${beneficiary.full_name}</h3>
+                        ${beneficiary.is_active ? '<span class="badge badge-success">ACTIVE</span>' : '<span class="badge badge-info">INACTIVE</span>'}
+                    </div>
+                    <div class="card-body">
+                        <p><i class="fas fa-bullhorn"></i> <strong>Campaign:</strong> ${beneficiary.campaign_title}</p>
+                        <hr>
+                        <p><strong><i class="fas fa-hands-helping"></i> Needs:</strong></p>
+                        <p style="min-height: 60px;">${beneficiary.needs_description}</p>
+                        ${beneficiary.email ? `<p><i class="fas fa-envelope"></i> ${beneficiary.email}</p>` : ''}
+                        ${beneficiary.phone ? `<p><i class="fas fa-phone"></i> ${beneficiary.phone}</p>` : ''}
+                        ${beneficiary.address ? `<p><i class="fas fa-map-marker-alt"></i> ${beneficiary.address}</p>` : ''}
+                    </div>
+                    <div class="card-footer">
+                        <p><i class="fas fa-dollar-sign"></i> Amount Received: <strong>$${parseFloat(beneficiary.amount_received).toLocaleString()}</strong></p>
+                        ${beneficiary.date_of_birth ? `<p><i class="far fa-calendar"></i> DOB: ${beneficiary.date_of_birth}</p>` : ''}
+                    </div>
+                </div>
+            `;
+            $('#beneficiaries-grid').append(card);
+        });
+    });
+});
+</script>
+{% endblock %}

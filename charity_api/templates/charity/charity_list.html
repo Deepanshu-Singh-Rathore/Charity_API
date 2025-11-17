@@ -1,0 +1,128 @@
+{% extends 'charity/base.html' %}
+{% block title %}Charities | Charity Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .toolbar { display: flex; gap: 1rem; align-items: center; justify-content: space-between; }
+    .search-box { display: flex; gap: 0.5rem; }
+    .search-box input { padding: 0.7rem 1rem; border-radius: 8px; border: 1px solid #ddd; min-width: 260px; }
+    .pill { padding: 0.5rem 0.9rem; background: #eef6ff; color: #1565c0; border-radius: 999px; font-weight: 600; }
+    .charity-card { display: grid; grid-template-columns: 96px 1fr; gap: 1rem; align-items: center; }
+    .charity-logo { width: 96px; height: 96px; border-radius: 10px; object-fit: cover; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #999; }
+    .charity-meta { color: #666; font-size: 0.95rem; margin-top: 0.25rem; }
+    .actions { display: flex; gap: 0.75rem; margin-top: 0.75rem; }
+    .btn-outline { background: transparent; border: 2px solid var(--secondary-color); color: var(--secondary-color); }
+    .btn-donate { background: var(--accent-color); color: white; }
+    .empty { text-align: center; color: #666; padding: 2rem; }
+    .pagination-bar { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Charities</h1>
+  <p>Discover and support organizations making real impact.</p>
+</section>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search by name, category, or location" />
+      <button class="btn btn-secondary" id="searchBtn"><i class="fas fa-search"></i> Search</button>
+    </div>
+    <span id="countPill" class="pill">Loading...</span>
+  </div>
+
+  <div id="grid" class="card-grid" aria-live="polite"></div>
+  <div id="empty" class="empty" style="display:none">No charities found.</div>
+
+  <div class="pagination-bar">
+    <button class="btn" id="prevBtn" disabled>Previous</button>
+    <button class="btn" id="nextBtn" disabled>Next</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('empty');
+  const countPill = document.getElementById('countPill');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  let state = { page: 1, search: '', next: null, previous: null, count: 0 };
+
+  function buildCard(item){
+    const imgSrc = item.logo ? item.logo : '';
+    const link = item.link || '#';
+    const disabled = !item.link;
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card charity-card';
+    wrapper.innerHTML = `
+      <div class="charity-logo">${imgSrc ? `<img src="${imgSrc}" alt="${item.name} logo" class="charity-logo"/>` : `<i class=\"fas fa-image\"></i>`}</div>
+      <div class="card-body">
+        <div class="card-header" style="border-radius: 10px 10px 0 0; margin: -1.5rem -1.5rem 1rem -1.5rem;">
+          <h3>${item.name}</h3>
+        </div>
+        <div class="charity-meta">
+          <strong>Category:</strong> ${item.category || '—'}&nbsp;&nbsp;|&nbsp;&nbsp;
+          <strong>Location:</strong> ${item.location || '—'}
+        </div>
+        <div class="actions">
+          <a class="btn btn-outline" href="${disabled ? '#' : link}" target="_blank" rel="noopener" ${disabled ? 'aria-disabled="true"' : ''}>Know More</a>
+          <a class="btn btn-donate" href="${disabled ? '#' : link}" target="_blank" rel="noopener" ${disabled ? 'aria-disabled="true"' : ''}><i class="fas fa-hand-holding-heart"></i> Donate</a>
+        </div>
+      </div>
+    `;
+    return wrapper;
+  }
+
+  async function load(){
+    const params = new URLSearchParams();
+    params.set('page', state.page);
+    if(state.search) params.set('search', state.search);
+
+    grid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    empty.style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/charities/?${params.toString()}`);
+      const data = await res.json();
+      state.count = data.count || 0;
+      state.next = data.next;
+      state.previous = data.previous;
+
+      countPill.textContent = `${state.count} charities`;
+
+      grid.innerHTML = '';
+      const results = data.results || [];
+      if(results.length === 0){
+        empty.style.display = 'block';
+      } else {
+        results.forEach(item => grid.appendChild(buildCard(item)));
+      }
+
+      prevBtn.disabled = !state.previous;
+      nextBtn.disabled = !state.next;
+    } catch (e) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      countPill.textContent = 'Error loading';
+      console.error(e);
+    }
+  }
+
+  searchBtn.addEventListener('click', () => { state.page = 1; state.search = searchInput.value.trim(); load(); });
+  searchInput.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ state.page = 1; state.search = searchInput.value.trim(); load(); } });
+  prevBtn.addEventListener('click', () => { if(state.previous){ state.page = Math.max(1, state.page - 1); load(); } });
+  nextBtn.addEventListener('click', () => { if(state.next){ state.page = state.page + 1; load(); } });
+
+  load();
+})();
+</script>
+{% endblock %}

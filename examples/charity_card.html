@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Charity Card Example</title>
+  <style>
+    .charity-card {
+      width: 340px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+      transition: transform .2s ease, box-shadow .2s ease;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .charity-card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,0.12); }
+    .charity-card__cover { height: 160px; background: #f3f6fb; display: flex; align-items: center; justify-content: center; }
+    .charity-card__cover img { max-height: 120px; max-width: 90%; object-fit: contain; }
+    .charity-card__body { padding: 16px 18px; }
+    .charity-card__title { font-size: 18px; font-weight: 700; margin: 0 0 6px; color: #222; }
+    .charity-card__meta { display: flex; gap: 8px; align-items: center; color: #6b7280; font-size: 13px; margin-bottom: 10px; }
+    .badge { display: inline-block; padding: 4px 10px; font-size: 12px; border-radius: 999px; font-weight: 600; background: #eef2ff; color: #4338ca; }
+    .charity-card__location { color: #4b5563; font-size: 13px; }
+    .charity-card__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .btn { display: inline-block; text-align: center; padding: 10px 12px; border-radius: 10px; font-weight: 700; text-decoration: none; font-size: 14px; }
+    .btn-outline { border: 2px solid #6366f1; color: #4f46e5; background: transparent; }
+    .btn-primary { background: #16a34a; color: #fff; border: 2px solid #16a34a; }
+    .btn:hover { filter: brightness(0.95); }
+  </style>
+</head>
+<body>
+  <div class="charity-card">
+    <div class="charity-card__cover">
+      <img src="/media/charity_logos/sample.png" alt="Charity Logo" />
+    </div>
+    <div class="charity-card__body">
+      <h3 class="charity-card__title">Hope Foundation</h3>
+      <div class="charity-card__meta">
+        <span class="badge">Education</span>
+        <span class="charity-card__location">Bengaluru, India</span>
+      </div>
+      <div class="charity-card__actions">
+        <a class="btn btn-outline" href="https://example.org" target="_blank" rel="noopener">Know More</a>
+        <a class="btn btn-primary" href="#">Donate</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
