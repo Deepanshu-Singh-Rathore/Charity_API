@@ -139,6 +139,108 @@ python manage.py runserver
 
 The API will be available at `http://127.0.0.1:8000/api/`
 
+## Where to Add This Project
+
+You can place this repository anywhere on your machine, for example:
+
+- Windows example path: `C:\Users\<you>\projects\Charity_API` (as in this repo)
+
+Clone and enter the folder:
+
+```powershell
+git clone https://github.com/Deepanshu-Singh-Rathore/Charity_API.git
+cd Charity_API
+```
+
+Then follow the steps in Setup Instructions (create/activate venv, install `requirements.txt`, run migrations, create superuser, runserver).
+
+## Initialize Inside an Existing Django App/Project
+
+If you already have a Django project and want to add this API as an app within it, follow these minimal steps:
+
+1) Copy the app directory
+- Copy the `charity_api/` folder into your existing Django project root (alongside your other apps).
+
+2) Install dependencies
+```powershell
+pip install -r requirements.txt
+```
+
+3) Add to `INSTALLED_APPS`
+In your project `settings.py`:
+```python
+INSTALLED_APPS = [
+  # ... existing apps ...
+  'rest_framework',
+  'django_filters',
+  'charity_api',
+]
+```
+
+4) Templates directory
+Ensure the `charity_api/templates` folder is in your template dirs:
+```python
+TEMPLATES = [
+  {
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [BASE_DIR / 'charity_api' / 'templates'],
+    'APP_DIRS': True,
+    'OPTIONS': { 'context_processors': [
+      'django.template.context_processors.debug',
+      'django.template.context_processors.request',
+      'django.contrib.auth.context_processors.auth',
+      'django.contrib.messages.context_processors.messages',
+    ]},
+  },
+]
+```
+
+5) Static and Media
+In `settings.py`:
+```python
+STATIC_URL = 'static/'
+STATICFILES_DIRS = [ BASE_DIR / 'charity_api' / 'static' ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+```
+In your project `urls.py` (development only):
+```python
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+  # ...
+] + (static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT) if settings.DEBUG else [])
+```
+
+6) URL routes
+Add the API and the single UI screen:
+```python
+from django.urls import path, include
+from charity_api.web_views import CharitiesView
+
+urlpatterns = [
+  # ... your existing routes ...
+  path('api/', include('charity_api.urls')),
+  path('charities/', CharitiesView.as_view(), name='charities'),
+]
+```
+
+7) Run migrations for the new app
+```powershell
+python manage.py makemigrations charity_api
+python manage.py migrate
+```
+
+8) Create an admin and run
+```powershell
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+Access the UI at `http://127.0.0.1:8000/charities/` and the API at `http://127.0.0.1:8000/api/charities/`.
+
 ## Admin Interface
 
 Access the Django admin panel at `http://127.0.0.1:8000/admin/` to manage data through a web interface.
